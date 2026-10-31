@@ -1,10 +1,29 @@
+
 name: Daily Development Log
 
 on:
-  schedule:
-    - cron: "30 4 * * *"
-      timezone: "Asia/Kolkata"
   workflow_dispatch:
+    inputs:
+      task1:
+        description: "Development task 1"
+        required: false
+        type: string
+      task2:
+        description: "Development task 2"
+        required: false
+        type: string
+      task3:
+        description: "Development task 3"
+        required: false
+        type: string
+      task4:
+        description: "Development task 4"
+        required: false
+        type: string
+      task5:
+        description: "Development task 5"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -17,21 +36,38 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Create daily log
+      - name: Create development commits
+        env:
+          TASK_1: ${{ inputs.task1 }}
+          TASK_2: ${{ inputs.task2 }}
+          TASK_3: ${{ inputs.task3 }}
+          TASK_4: ${{ inputs.task4 }}
+          TASK_5: ${{ inputs.task5 }}
         run: |
           mkdir -p logs
-          DATE=$(date '+%Y-%m-%d')
-          TIME=$(date '+%H:%M:%S')
 
-          echo "# Development Log - $DATE" > "logs/$DATE.md"
-          echo "" >> "logs/$DATE.md"
-          echo "Daily project documentation update." >> "logs/$DATE.md"
-          echo "Updated at: $TIME IST" >> "logs/$DATE.md"
+          DATE=$(TZ=Asia/Kolkata date '+%Y-%m-%d')
+          TIME=$(TZ=Asia/Kolkata date '+%H:%M:%S')
 
-      - name: Commit
-        run: |
+          FILE="logs/$DATE.md"
+
+          touch "$FILE"
+
           git config user.name "Achal-kashyap"
-          git config user.email "${{ github.actor }}@users.noreply.github.com"
-          git add .
-          git diff --cached --quiet || git commit -m "docs: daily development log"
+          git config user.email "achalkashyap074@gmail.com"
+
+          for i in 1 2 3 4 5
+          do
+            VAR="TASK_$i"
+            TASK="${!VAR}"
+
+            if [ -n "$TASK" ]; then
+              echo "- [$TIME] $TASK" >> "$FILE"
+
+              git add "$FILE"
+
+              git commit -m "docs: development update $i"
+            fi
+          done
+
           git push
